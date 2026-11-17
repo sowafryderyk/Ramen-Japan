@@ -1,106 +1,49 @@
-# Ramen Japan – opis projektu
+# Ramen Japan
 
-## 1. Nazwa i autorzy
+Mały, działający prototyp sklepu z ramenem i dostawą na Słotwinę. Aplikacja używa PHP, MySQL, sesji i klasycznego HTML/CSS.
 
-**Nazwa projektu:** Ramen Japan
+## Funkcje
 
-**Autorzy:** 
-- Fryderyk Sowa
-- Piotr Leś
+- Rejestracja, logowanie i wylogowanie; hasła są zapisywane przez `password_hash()`, a sprawdzane przez `password_verify()`.
+- Menu dostępne po zalogowaniu; zamówienie dania z podaniem ilości, adresu i numeru telefonu.
+- Historia zamówień i status widoczne wyłącznie dla zalogowanego właściciela.
+- Walidacja formularzy w przeglądarce i na serwerze, tokeny CSRF, zapytania PDO z parametrami oraz sesje z ochroną `HttpOnly` i `SameSite`.
+- Cena i suma zamówienia są pobierane/obliczane po stronie serwera. Zapis zamówienia i jego pozycji odbywa się w transakcji.
 
-## 2. Cel aplikacji
+## Uruchomienie lokalne (XAMPP)
 
-Celem projektu jest stworzenie strony internetowej umożliwiającej zamawianie tradycyjnego japońskiego ramenu przez Internet z dostawą na Słotwinę.
+1. Skopiuj folder `PiotrFrderykRamen` do `C:\xampp\htdocs\`.
+2. Uruchom Apache i MySQL w XAMPP.
+3. Otwórz phpMyAdmin (`http://localhost/phpmyadmin`), wybierz **Import** i zaimportuj plik `database.sql`. Tworzy on bazę `ramen_japan`, tabele i przykładowe menu.
+4. Otwórz `http://localhost/PiotrFrderykRamen/`.
+5. Załóż konto przez formularz. Hasło musi mieć co najmniej 10 znaków.
 
-Aplikacja jest przeznaczona dla osób zainteresowanych kuchnią japońską, które chcą zamawiać różne rodzaje ramenu bez wychodzenia z domu.
+Domyślne połączenie jest przeznaczone dla lokalnego XAMPP (`root`, puste hasło). Można je zmienić zmiennymi środowiskowymi `RAMEN_DB_DSN`, `RAMEN_DB_USER` i `RAMEN_DB_PASSWORD`. Na serwerze produkcyjnym należy skonfigurować osobne konto bazy z ograniczonymi uprawnieniami i HTTPS.
 
-Strona rozwiązuje problem braku wygodnego sposobu zamawiania japońskich potraw online. Użytkownik będzie mógł zapoznać się z menu, sprawdzić składniki i ceny dań, dodać produkty do koszyka oraz złożyć zamówienie.
+## Kontrole bezpieczeństwa
 
-**Przykład użycia:** Klient wchodzi na stronę Ramen Japan, wybiera Miso Ramen, dodaje danie do koszyka, podaje adres dostawy na Słotwinę i składa zamówienie.
+- Żadna trasa menu ani historii nie renderuje danych bez zalogowanej sesji.
+- Dane użytkownika są przypisywane do zamówienia z sesji, a zapytanie historii filtruje po `user_id`.
+- Kwota pochodzi z aktualnej ceny w bazie, nie z formularza przeglądarki.
+- Nieprawidłowe logowanie zwraca ogólny komunikat; zmiana identyfikatora zamówienia nie ujawnia zamówień innych klientów.
+- Token CSRF jest wymagany przy każdym żądaniu zmieniającym stan (także wylogowaniu).
 
-## 3. Planowane funkcje
+## Sprawdzenie przed prezentacją
 
-Aplikacja będzie umożliwiała użytkownikom wykonywanie następujących czynności:
+1. Zarejestruj konto i sprawdź w phpMyAdmin, że `users.password_hash` nie zawiera hasła w postaci jawnej.
+2. Spróbuj zarejestrować się ponownie tym samym e-mailem oraz zalogować z błędnym hasłem — formularz powinien pokazać komunikat błędu.
+3. Wyloguj się i otwórz bezpośrednio `index.php?page=orders` — aplikacja powinna przekierować do logowania.
+4. Zaloguj się, zamów ramen, a następnie potwierdź w historii nazwę dania, kwotę i status. Sprawdź też, że druga sesja użytkownika nie widzi tego zamówienia.
 
-1. **Przeglądanie menu** – użytkownik może przeglądać dostępne rodzaje ramenu, ich zdjęcia, opisy, składniki oraz ceny.
-2. **Obsługa koszyka** – użytkownik może dodawać dania do koszyka, zmieniać ich ilość, usuwać produkty oraz sprawdzać łączną cenę.
-3. **Składanie zamówień** – klient może podać swoje dane kontaktowe i adres dostawy, a następnie złożyć zamówienie.
-4. **Rejestracja i logowanie** – użytkownik może utworzyć konto i zalogować się do aplikacji.
-5. **Historia zamówień** – zalogowany klient może sprawdzać swoje wcześniejsze zamówienia oraz ich aktualny status.
-6. **Kontakt z restauracją** – użytkownik może sprawdzić dane kontaktowe restauracji i godziny przyjmowania zamówień.
-7. **Zarządzanie menu i zamówieniami** – administrator może dodawać, usuwać i edytować dania, zmieniać ceny oraz kontrolować zamówienia.
+## Materiały do oddania
 
-## 4. Technologie i dane
+Do sprawozdania w Teams dołącz link do zdalnego repozytorium i własne zrzuty ekranu: formularze rejestracji/logowania z błędem, tabelę `users` z zahashowanym hasłem, menu/historię po zalogowaniu oraz historię commitów. Zrzuty wykonaj w uruchomionej lokalnie aplikacji i phpMyAdmin; nie umieszczaj na nich prawdziwych danych osobowych.
 
-Do stworzenia aplikacji planujemy wykorzystać następujące technologie:
+Folder nie był połączony ze zdalnym repozytorium. Po utworzeniu pustego repozytorium na GitHubie ustaw jego adres i wypchnij gałąź `main`:
 
-- **HTML** – struktura strony internetowej.
-- **CSS / Tailwind CSS** – wygląd i stylowanie elementów strony.
-- **JavaScript** – obsługa interakcji użytkownika.
-- **React** – budowa interfejsu użytkownika.
-- **PHP** – obsługa logiki po stronie serwera i komunikacja z bazą danych.
-- **MySQL** – przechowywanie danych.
+```powershell
+git remote add origin https://github.com/ponczek505/ramenSlotwina.git
+git push -u origin main
+```
 
-W bazie danych MySQL będą przechowywane:
-- Dane użytkowników i ich kont.
-- Informacje o daniach, składnikach i cenach.
-- Zamówienia klientów.
-- Szczegóły zamówień i ich statusy.
-
-Za obsługę danych będzie odpowiadał backend napisany w PHP, który będzie komunikował się z bazą danych MySQL. Interfejs React będzie przesyłał żądania do serwera i wyświetlał otrzymane dane.
-
-## 5. Zagrożenia i zabezpieczenia
-
-| Zagrożenie | Zabezpieczenie |
-|---|---|
-| Nieuprawniona osoba może próbować wejść do panelu administratora. | Logowanie administratora, kontrola uprawnień i zabezpieczenie podstron. |
-| Użytkownik może próbować zmienić cenę produktu lub całkowitą wartość zamówienia. | Obliczanie cen po stronie serwera, a nie tylko w przeglądarce. |
-| Ktoś może przesłać nieprawidłowe dane podczas składania zamówienia. | Walidacja danych, sprawdzanie wymaganych pól i poprawności adresu e-mail. |
-| Atakujący może próbować wykonać atak SQL Injection. | Stosowanie zapytań przygotowanych (Prepared Statements) w PHP. |
-| Ktoś może próbować zalogować się na cudze konto. | Bezpieczne hashowanie haseł oraz ograniczenie liczby prób logowania. |
-| Użytkownik może próbować usunąć lub edytować zamówienia innych klientów. | Sprawdzanie tożsamości użytkownika i jego uprawnień przed wykonaniem operacji. |
-
-## 6. Plan pracy
-
-Projekt będzie realizowany przez dwie osoby. Praca zostanie podzielona na następujące etapy:
-
-### Etap 1 – Planowanie i przygotowanie
-- Ustalenie wyglądu strony i jej funkcjonalności.
-- Przygotowanie repozytorium GitHub.
-- Zaplanowanie struktury bazy danych.
-
-### Etap 2 – Tworzenie interfejsu
-- **Osoba 1:** Przygotowanie strony głównej, menu dań oraz podstrony kontaktowej.
-- **Osoba 2:** Przygotowanie widoku koszyka, formularza zamówienia oraz widoków logowania i rejestracji.
-
-### Etap 3 – Backend i baza danych
-- **Osoba 1:** Przygotowanie bazy danych MySQL oraz obsługi użytkowników i logowania.
-- **Osoba 2:** Przygotowanie obsługi menu, koszyka i składania zamówień w PHP.
-
-### Etap 4 – Panel administratora
-- **Osoba 1:** Przygotowanie zarządzania daniami i ich cenami.
-- **Osoba 2:** Przygotowanie zarządzania zamówieniami i ich statusami.
-
-### Etap 5 – Testowanie i poprawki
-- Sprawdzenie poprawności działania wszystkich funkcji.
-- Testowanie rejestracji, logowania i składania zamówień.
-- Sprawdzenie zabezpieczeń i poprawności danych.
-- Poprawienie błędów i dopracowanie wyglądu strony.
-
-### Podział obowiązków
-
-**Osoba 1:**
-- Strona główna i menu.
-- Kontakt.
-- Baza danych.
-- Rejestracja i logowanie.
-- Zarządzanie daniami w panelu administratora.
-
-**Osoba 2:**
-- Koszyk zakupowy.
-- Formularz składania zamówień.
-- Obsługa zamówień w PHP.
-- Historia zamówień.
-- Zarządzanie statusami zamówień.
-
-Obie osoby będą wspólnie odpowiadać za testowanie aplikacji, poprawianie błędów oraz końcowe połączenie wszystkich elementów projektu.
+Przed tworzeniem commitów ustaw własną nazwę i e-mail autora (`git config user.name ...` oraz `git config user.email ...`).
